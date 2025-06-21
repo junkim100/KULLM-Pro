@@ -1,0 +1,82 @@
+# KULLM-Pro Configuration - Small Model for Testing/Development
+# This configuration uses smaller models and settings for development and testing
+
+# Model Configuration - Using smaller model for faster testing
+model:
+  name: "microsoft/DialoGPT-small"  # Small model for testing
+  max_length: 512                   # Reduced for faster processing
+  torch_dtype: "float32"           # Use float32 for CPU testing
+  device_map: "auto"
+  attn_implementation: "eager"
+
+# Training Configuration - Reduced settings for quick testing
+training:
+  # Basic Training Parameters
+  epochs: 1                        # Single epoch for testing
+  batch_size: 1                    # Small batch size
+  learning_rate: 0.001             # Higher learning rate for quick convergence
+  gradient_accumulation_steps: 2   # Reduced accumulation
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  lr_scheduler_type: "linear"      # Linear scheduler for simplicity
+  
+  # Evaluation and Saving
+  eval_steps: 10                   # Frequent evaluation
+  save_steps: 20                   # Frequent saving
+  logging_steps: 5                 # Frequent logging
+  save_total_limit: 2              # Keep fewer checkpoints
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  
+  # Performance Optimizations - Disabled for compatibility
+  bf16: false                      # Use float32 for CPU
+  fp16: false
+  gradient_checkpointing: false    # Disabled for small model
+  dataloader_num_workers: 0
+  optim: "adamw_torch"
+
+# LoRA Configuration - Minimal settings
+lora:
+  r: 4                            # Very small rank for testing
+  alpha: 8                        # Proportional alpha
+  dropout: 0.1
+  bias: "none"
+  task_type: "CAUSAL_LM"
+  target_modules:                 # Minimal target modules
+    - "q_proj"
+    - "v_proj"
+
+# Experiment Tracking - Disabled for testing
+wandb:
+  project: "kullm-pro-dev"        # Development project
+  enabled: false                  # Disabled by default
+  entity: null
+  tags: ["development", "testing"]
+
+# Data Configuration
+data:
+  train_split_ratio: 0.8          # 80% train, 20% validation
+
+# OpenAI Configuration - Conservative settings for testing
+openai:
+  model: "gpt-3.5-turbo"          # Cheaper model for testing
+  max_tokens: 500                 # Reduced token limit
+  temperature: 1.0
+  use_batch_api: false            # Use regular API for immediate results
+  batch_size: 5                   # Small batch size
+  max_concurrent_requests: 2      # Conservative concurrency
+  requests_per_minute: 100        # Lower rate limit
+  max_retries: 2                  # Fewer retries
+  timeout: 60                     # Shorter timeout
+
+# Logging Configuration
+logging:
+  level: "DEBUG"                  # Verbose logging for development
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: null                      # Console only
+
+# Default Paths
+paths:
+  data_dir: "./examples/data"     # Example data directory
+  output_dir: "./examples/outputs" # Example output directory
+  system_prompt: "examples/system_prompt_simple.txt"

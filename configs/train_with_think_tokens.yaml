@@ -1,52 +1,64 @@
 # Training configuration for KULLM-Pro with think tokens and cleaned tokenizer
 # This config ensures proper think token training and removes unnecessary special tokens
 
-# Model and tokenizer settings
-model_name: "Qwen/Qwen2.5-7B-Instruct"
-tokenizer_name: "Qwen/Qwen2.5-7B-Instruct"
+# Model settings
+model:
+  name: "Qwen/Qwen2.5-7B-Instruct"
+  max_length: 8192
 
-# Clean tokenizer settings
-clean_tokenizer: true  # Remove unnecessary special tokens
-essential_tokens_only: true  # Keep only im_start, im_end, think tokens
-
-# Data settings
-dataset_path: "data/code_switched_GAIR_LIMO_train_817.jsonl"
-max_seq_length: 8192
-train_split: 0.95
-eval_split: 0.05
+# Dataset settings
+dataset:
+  path: "data/code_switched_GAIR_LIMO_train_817.jsonl"
+  train_split: 0.95
+  eval_split: 0.05
+  think_token_start: "<think>"
+  think_token_end: "</think>"
 
 # Think token settings
-use_think_tokens: true
-think_mode: true
-validate_think_tokens: true  # Ensure think tokens are properly formatted
+think_tokens:
+  enabled: true
+  validate: true
+  clean_tokenizer: true
+  essential_tokens_only: true
 
 # Training hyperparameters
-learning_rate: 2e-4
-batch_size: 4
-gradient_accumulation_steps: 4
-num_epochs: 3
-warmup_ratio: 0.1
-weight_decay: 0.01
+training:
+  learning_rate: 0.0002
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 4
+  num_train_epochs: 3
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  optimizer: "adamw_torch"
+  lr_scheduler_type: "cosine"
+  save_strategy: "steps"
+  eval_strategy: "steps"
+  eval_steps: 100
+  logging_steps: 10
+  save_total_limit: 2
+  save_steps: 500
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  fp16: true
+  gradient_checkpointing: true
+  dataloader_pin_memory: true
+  remove_unused_columns: false
+  report_to: ["wandb"]
 
 # LoRA settings
-use_lora: true
-lora_r: 16
-lora_alpha: 32
-lora_dropout: 0.1
-target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
-
-# Optimization
-optimizer: "adamw_torch"
-lr_scheduler_type: "cosine"
-save_strategy: "epoch"
-evaluation_strategy: "steps"
-eval_steps: 100
-logging_steps: 10
+lora:
+  enabled: true
+  r: 16
+  alpha: 32
+  dropout: 0.1
+  bias: "none"
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
 
 # Output settings
 output_dir: "outputs/limo-think-tokens"
 run_name: "kullm-pro-think-tokens"
-save_total_limit: 2
 
 # Special token handling
 special_tokens:
@@ -84,18 +96,12 @@ preprocessing:
   max_think_length: 8192
   ensure_think_closure: true  # Ensure every <think> has a </think>
 
-# Logging and monitoring
-logging:
-  log_level: "info"
-  report_to: ["wandb"]
-  log_think_token_stats: true  # Log statistics about think token usage
-
 # Weights & Biases settings
 wandb:
+  enabled: true
   project: "kullm-pro-v1.1"
   entity: null  # Set your wandb entity here
   tags: ["think-tokens", "qwen2.5-7b", "korean-reasoning"]
-  enabled: true
 
 # Validation
 validation:

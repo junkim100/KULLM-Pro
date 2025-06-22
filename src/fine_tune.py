@@ -534,7 +534,7 @@ class FineTuneCLI:
         data_file: str,
         output_dir: str = "./outputs/kullm_pro_model",
         model_name: Optional[str] = None,
-        config_file: str = "config.yaml",
+        config: str = "config.yaml",
         run_name: Optional[str] = None,
         val_file: Optional[str] = None,
     ):
@@ -545,15 +545,15 @@ class FineTuneCLI:
             data_file: Path to training data JSONL file
             output_dir: Output directory for trained model (default: "./outputs/kullm_pro_model")
             model_name: Model name to fine-tune (overrides config)
-            config_file: Path to configuration file (default: "config.yaml")
+            config: Path to configuration file (default: "config.yaml")
             run_name: Wandb run name (auto-generated if not provided)
             val_file: Optional path to validation JSONL file
 
         Example:
-            python src/fine_tune.py train --data_file="./data/train.jsonl" --output_dir="./outputs/my_model"
+            python src/fine_tune.py train --data_file="./data/train.jsonl" --output_dir="./outputs/my_model" --config="configs/train_with_think_tokens.yaml"
         """
         # Create pipeline
-        pipeline = FineTuningPipeline(config_path=config_file)
+        pipeline = FineTuningPipeline(config_path=config)
 
         # Run training
         try:
@@ -575,16 +575,14 @@ class FineTuneCLI:
             self.logger.error(f"Fine-tuning failed: {e}")
             raise
 
-    def evaluate(
-        self, model_dir: str, eval_file: str, config_file: str = "config.yaml"
-    ):
+    def evaluate(self, model_dir: str, eval_file: str, config: str = "config.yaml"):
         """
         Evaluate a trained model.
 
         Args:
             model_dir: Directory containing the trained model
             eval_file: Path to evaluation data JSONL file
-            config_file: Path to configuration file
+            config: Path to configuration file
 
         Example:
             python src/fine_tune.py evaluate --model_dir="./outputs/my_model" --eval_file="./data/test.jsonl"

@@ -95,7 +95,7 @@ python src/utils/format_think_data.py \
 
 ### 3. **Train Your Model**
 ```bash
-python src/fine_tune.py \
+python src/fine_tune.py train \
   --config="configs/train_with_think_tokens.yaml" \
   --data_file="data/code_switched_LIMO_train_think.jsonl" \
   --output_dir="outputs/kullm-pro-v1.1"

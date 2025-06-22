@@ -1,587 +1,316 @@
-# KULLM-Pro
+# KULLM-Pro v1.1.0
 
-**Korean-English Code-Switched Language Model Training Pipeline**
+<div align="center">
+
+**Korean University Large Language Model - Professional Edition**
+
+*A production-ready framework for training bilingual reasoning models with think token capabilities*
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
-[![CI](https://github.com/junkim100/KULLM-Pro/workflows/CI/badge.svg)](https://github.com/junkim100/KULLM-Pro/actions)
-[![codecov](https://codecov.io/gh/junkim100/KULLM-Pro/branch/main/graph/badge.svg)](https://codecov.io/gh/junkim100/KULLM-Pro)
+[![Transformers](https://img.shields.io/badge/🤗%20Transformers-4.44%2B-yellow.svg)](https://huggingface.co/transformers/)
 
-A production-ready framework for creating code-switched datasets and fine-tuning language models with LoRA for Korean-English mathematical reasoning.
+</div>
 
-## 🚀 Features
+## 🚀 What's New in v1.1.0
 
-- **Flexible Code Switching**: Process any Hugging Face dataset with configurable parameters
-- **Long Content Support**: Automatic chunking and processing of extremely long system prompts and input data
-- **LoRA Fine-tuning**: Advanced fine-tuning with LoRA, checkpoint management, and experiment tracking
-- **OpenAI Integration**: Batch API support for cost-efficient code switching
-- **Production Ready**: Proper error handling, logging, and configuration management
-- **CLI Interface**: Easy-to-use command-line tools with Python Fire
-- **Experiment Tracking**: Weights & Biases integration for monitoring training
+- **🧠 Think Token Training**: Enhanced reasoning with `<think>` and `</think>` tokens
+- **🧹 Clean Tokenizer**: Minimal special tokens (only 5 essential tokens)
+- **🌏 Code-Switching**: Natural Korean-English bilingual reasoning
+- **💬 Enhanced Chat Interface**: Streaming generation with colored think tokens
+- **📊 Production Pipeline**: Complete training and deployment workflow
 
-## 📋 Table of Contents
+## ✨ Features
 
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
-- [Code Switching](#code-switching)
-- [Fine-tuning](#fine-tuning)
-- [Examples](#examples)
-- [API Reference](#api-reference)
-- [Contributing](#contributing)
-- [License](#license)
+### 🧠 **Think Token Reasoning**
+- Models learn to show step-by-step reasoning using `<think>` tags
+- Transparent problem-solving process
+- Enhanced mathematical and logical reasoning capabilities
 
-## 🛠 Installation
+### 🌏 **Code-Switching Training**
+- Natural Korean-English bilingual data generation
+- Preserves reasoning structure while adding linguistic diversity
+- Supports LIMO and other reasoning datasets
+
+### 🧹 **Clean Tokenizer**
+- Removes unnecessary special tokens (tool_call, vision, etc.)
+- Keeps only essential tokens: `<|im_start|>`, `<|im_end|>`, `<think>`, `</think>`, `<|endoftext|>`
+- Faster training and cleaner inference
+
+### 💬 **Enhanced Chat Interface**
+- Real-time streaming generation
+- Color-coded think tokens for better visualization
+- Full Korean and English language support
+- Production-ready inference
+
+### 📊 **Production Pipeline**
+- LoRA fine-tuning with advanced features
+- Weights & Biases integration
+- Comprehensive validation and statistics
+- Resumable training with checkpoints
+
+## 🛠️ Installation
 
 ### Prerequisites
+- Python 3.8+
+- CUDA-compatible GPU (recommended for training)
+- 18GB+ VRAM for Qwen2.5-7B training, 8GB+ for inference
 
-- Python 3.8 or higher
-- CUDA-compatible GPU (recommended for fine-tuning)
-- OpenAI API key (for code switching)
-
-### Setup
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/junkim100/KULLM-Pro.git
-   cd KULLM-Pro
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API keys
-   ```
-
-4. **Configure the system:**
-   ```bash
-   # Edit config.yaml with your preferred settings
-   vim config.yaml
-   ```
-
-## ⚡ Quick Start
-
-### Code Switching
-
-Generate code-switched datasets from any Hugging Face dataset:
-
+### Quick Install
 ```bash
-# Basic usage
-python code_switch.py run "GAIR/LIMO" --split="train" --n=300
+git clone https://github.com/junkim100/KULLM-Pro.git
+cd KULLM-Pro
+pip install -r requirements.txt
+```
 
-# With custom parameters
-python code_switch.py run "microsoft/orca-math-word-problems-200k" \
+### Development Install (Recommended)
+```bash
+git clone https://github.com/junkim100/KULLM-Pro.git
+cd KULLM-Pro
+pip install -e .
+
+# This enables console commands:
+# kullm-chat, kullm-train, kullm-code-switch
+```
+
+## 🚀 Quick Start
+
+### 1. **Generate Code-Switched Training Data**
+```bash
+python src/code_switch.py \
+  --dataset_name="GAIR/LIMO" \
   --split="train" \
-  --subset="default" \
-  --n=1000 \
-  --output_dir="./data"
+  --n_samples=817 \
+  --output_file="data/code_switched_LIMO_train.jsonl"
 ```
 
-### Fine-tuning
-
-Train models with LoRA fine-tuning:
-
+### 2. **Format Data with Think Tokens**
 ```bash
-# Basic fine-tuning
-python fine_tune.py train \
-  --train_file="./data/GAIR_LIMO_train_300_code_switched.jsonl" \
-  --output_dir="./outputs/qwen_limo_cs"
-
-# With custom parameters
-python fine_tune.py train \
-  --train_file="./data/training_data.jsonl" \
-  --val_file="./data/validation_data.jsonl" \
-  --output_dir="./outputs/my_model" \
-  --run_name="experiment_1" \
-  --epochs=5 \
-  --batch_size=4
+python src/utils/format_think_data.py \
+  --input_file="data/code_switched_LIMO_train.jsonl" \
+  --output_file="data/code_switched_LIMO_train_think.jsonl" \
+  --format="think_tokens"
 ```
 
-## ⚙️ Configuration
-
-KULLM-Pro uses a centralized configuration system with `config.yaml`. Key sections include:
-
-### Model Configuration
-```yaml
-model:
-  name: "Qwen/Qwen2.5-7B-Instruct"
-  max_length: 2048
-  torch_dtype: "bfloat16"
-```
-
-### Training Configuration
-```yaml
-training:
-  epochs: 3
-  batch_size: 2
-  learning_rate: 2e-4
-  gradient_accumulation_steps: 8
-```
-
-### LoRA Configuration
-```yaml
-lora:
-  r: 16
-  alpha: 32
-  dropout: 0.1
-  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"]
-```
-
-### Environment Variables
-
-Set up your `.env` file with required API keys:
-
+### 3. **Train Your Model**
 ```bash
-# Required for code switching
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Optional for experiment tracking
-WANDB_API_KEY=your_wandb_api_key_here
-
-# Optional for private models/datasets
-HF_TOKEN=your_hugging_face_token_here
+python src/fine_tune.py \
+  --config="configs/train_with_think_tokens.yaml" \
+  --data_file="data/code_switched_LIMO_train_think.jsonl" \
+  --output_dir="outputs/kullm-pro-v1.1"
 ```
 
-## 🔄 Code Switching
-
-The code switching module can process any Hugging Face dataset and generate Korean-English code-switched versions.
-
-### Basic Usage
-
+### 4. **Chat with Your Model**
 ```bash
-# Process GAIR/LIMO dataset
-python code_switch.py run "GAIR/LIMO" --split="train" --n=300
+python scripts/chat.py \
+  --model_path="outputs/kullm-pro-v1.1" \
+  --max_new_tokens=2048
 
-# Process with subset
-python code_switch.py run "microsoft/orca-math-word-problems-200k" \
-  --split="train" \
-  --subset="default" \
-  --n=1000
-```
-
-### Advanced Options
-
-```bash
-python code_switch.py run "GAIR/LIMO" \
-  --split="train" \
-  --n=500 \
-  --output_dir="./custom_data" \
-  --use_batch_api=true \
-  --model="o4-mini-2025-04-16" \
-  --text_column="solution" \
-  --question_column="question" \
-  --answer_column="answer"
-```
-
-### Generated Files
-
-The code switching process generates descriptive filenames:
-
-- **Original**: `GAIR_LIMO_train_300_original.jsonl`
-- **Code-switched**: `GAIR_LIMO_train_300_code_switched.jsonl`
-- **Statistics**: `processing_stats.json`
-- **Failed items**: `failed_items.json` (if any)
-
-### Batch Processing
-
-Process multiple datasets using a configuration file:
-
-```bash
-# Create datasets_config.yaml
-python code_switch.py batch_process --datasets_config="datasets_config.yaml"
-```
-
-Example `datasets_config.yaml`:
-```yaml
-- dataset: "GAIR/LIMO"
-  split: "train"
-  n: 300
-- dataset: "microsoft/orca-math-word-problems-200k"
-  split: "train"
-  subset: "default"
-  n: 1000
-```
-
-## 🎯 Fine-tuning
-
-The fine-tuning module supports LoRA training with advanced features.
-
-### Basic Training
-
-```bash
-# Train with default settings
-python fine_tune.py train \
-  --train_file="./data/GAIR_LIMO_train_300_code_switched.jsonl" \
-  --output_dir="./outputs/my_model"
-```
-
-### Advanced Training
-
-```bash
-# Custom training with validation
-python fine_tune.py train \
-  --train_file="./data/train.jsonl" \
-  --val_file="./data/val.jsonl" \
-  --output_dir="./outputs/advanced_model" \
-  --run_name="experiment_v2" \
-  --epochs=5 \
-  --batch_size=4 \
-  --learning_rate=1e-4 \
-  --lora_r=32 \
-  --lora_alpha=64
-```
-
-### Resume Training
-
-```bash
-# Resume from checkpoint
-python fine_tune.py train \
-  --train_file="./data/train.jsonl" \
-  --output_dir="./outputs/my_model" \
-  --resume_from_checkpoint="./outputs/my_model/checkpoint-1000"
-```
-
-### Model Evaluation
-
-```bash
-# Evaluate trained model
-python fine_tune.py evaluate \
-  --model_dir="./outputs/my_model" \
-  --eval_file="./data/test.jsonl"
-```
-
-### Model Information
-
-```bash
-# Get model information
-python fine_tune.py info --model_dir="./outputs/my_model"
-
-# List checkpoints
-python fine_tune.py list_checkpoints --output_dir="./outputs/my_model"
-```
-
-## 📏 Long Content Processing
-
-KULLM-Pro supports automatic chunking and processing of extremely long system prompts and input data.
-
-### Configuration for Long Content
-
-```yaml
-# OpenAI Configuration for Long Content
-openai:
-  # Long Content Handling
-  max_input_length: 150000      # 150K characters max per request
-  chunk_size: 100000            # 100K character chunks
-  overlap_size: 10000           # 10K character overlap
-  enable_chunking: true         # Enable automatic chunking
-
-  # Optimized settings for long content
-  batch_size: 25                # Smaller batches
-  timeout: 900                  # 15 minutes timeout
-```
-
-### Usage with Long Content
-
-```bash
-# Use long content optimized configuration
-python code_switch.py run "GAIR/LIMO" \
-  --split="train" \
-  --n=100 \
-  --config_file="examples/config_long_content.yaml"
-```
-
-### How Chunking Works
-
-1. **Automatic Detection**: Content exceeding `max_input_length` is automatically chunked
-2. **Smart Boundaries**: Chunks are split at sentence/paragraph boundaries when possible
-3. **Context Preservation**: Overlapping content maintains context between chunks
-4. **Result Combination**: Chunk results are intelligently combined into final output
-
-### Long Content Features
-
-- **Smart Chunking**: Preserves sentence and paragraph boundaries
-- **Context Overlap**: Maintains coherence across chunks
-- **Batch Processing**: Supports chunked content in batch API
-- **Quality Assurance**: Validates chunk continuity and quality
-- **Detailed Logging**: Comprehensive logging for debugging
-
-For detailed information, see [Long Content Processing Guide](docs/LONG_CONTENT_GUIDE.md).
-
-## 📊 Examples
-
-### Example 1: LIMO Dataset Processing
-
-```bash
-# Step 1: Generate code-switched LIMO data
-python code_switch.py run "GAIR/LIMO" \
-  --split="train" \
-  --n=500 \
-  --output_dir="./data"
-
-# Step 2: Train baseline model
-python fine_tune.py train \
-  --train_file="./data/GAIR_LIMO_train_500_original.jsonl" \
-  --output_dir="./outputs/limo_baseline" \
-  --run_name="limo_baseline_v1"
-
-# Step 3: Train code-switched model
-python fine_tune.py train \
-  --train_file="./data/GAIR_LIMO_train_500_code_switched.jsonl" \
-  --output_dir="./outputs/limo_code_switched" \
-  --run_name="limo_code_switched_v1"
-
-# Step 4: Compare models
-python fine_tune.py evaluate \
-  --model_dir="./outputs/limo_baseline" \
-  --eval_file="./data/test.jsonl"
-
-python fine_tune.py evaluate \
-  --model_dir="./outputs/limo_code_switched" \
-  --eval_file="./data/test.jsonl"
-```
-
-### Example 2: Custom Dataset
-
-```bash
-# Process custom math dataset
-python code_switch.py run "your-org/custom-math-dataset" \
-  --split="train" \
-  --n=1000 \
-  --text_column="explanation" \
-  --question_column="problem" \
-  --answer_column="solution"
-
-# Fine-tune with custom parameters
-python fine_tune.py train \
-  --train_file="./data/your_org_custom_math_dataset_train_1000_code_switched.jsonl" \
-  --output_dir="./outputs/custom_model" \
-  --epochs=3 \
-  --batch_size=2 \
-  --max_length=4096
+# Or use the console command after pip install -e .
+kullm-chat --model_path="outputs/kullm-pro-v1.1"
 ```
 
 ## 📁 Project Structure
 
 ```
 KULLM-Pro/
-├── code_switch.py              # Code switching CLI
-├── fine_tune.py               # Fine-tuning CLI
-├── config.yaml                # Configuration file
-├── system_prompt.txt          # System prompt for code switching
-├── requirements.txt           # Dependencies
-├── .env.example              # Environment variables template
-├── README.md                 # This file
-├── LICENSE                   # License file
-├── kullm_pro/                # Main package
-│   ├── __init__.py
-│   ├── code_switching/       # Code switching module
-│   │   ├── __init__.py
-│   │   ├── pipeline.py       # Main pipeline
-│   │   ├── dataset_processor.py  # Dataset processing
-│   │   └── openai_client.py  # OpenAI API client
-│   ├── fine_tuning/          # Fine-tuning module
-│   │   ├── __init__.py
-│   │   ├── pipeline.py       # Training pipeline
-│   │   ├── trainer.py        # LoRA trainer
-│   │   └── data_processor.py # Data processing
-│   └── utils/                # Utilities
-│       ├── __init__.py
-│       ├── config.py         # Configuration management
-│       ├── logging.py        # Logging setup
-│       └── helpers.py        # Helper functions
-├── data/                     # Generated datasets
-└── outputs/                  # Trained models
+├── 📁 src/                          # Core source code
+│   ├── 🐍 code_switch.py           # Code-switching data generation
+│   ├── 🐍 fine_tune.py             # Model training pipeline
+│   ├── 📁 utils/                   # Utility modules
+│   │   ├── 🐍 clean_tokenizer.py   # Tokenizer cleaning utilities
+│   │   ├── 🐍 format_think_data.py # Think token data formatting
+│   │   ├── 🐍 data_processing.py   # Data processing utilities
+│   │   └── 🐍 model_utils.py       # Model utilities
+│   └── 🐍 __init__.py              # Package initialization
+├── 📁 scripts/                     # User-facing scripts
+│   └── 🐍 chat.py                  # Interactive chat interface
+├── 📁 tools/                       # Development and deployment tools
+│   └── 🐍 merge_lora.py            # LoRA merging utility
+├── 📁 configs/                     # Configuration files
+│   └── 📄 train_with_think_tokens.yaml
+├── 📁 data/                        # Training datasets
+├── 📁 outputs/                     # Model outputs and checkpoints
+├── 🐍 setup.py                     # Package setup
+├── 📄 .pre-commit-config.yaml      # Code quality automation
+├── 📄 requirements.txt             # Dependencies
+├── 📄 README.md                    # This file
+└── 📄 LICENSE                      # Apache 2.0 License
 ```
 
-## 🔧 API Reference
+## 🧠 Think Token Training
 
-### Code Switching Pipeline
+KULLM-Pro v1.1.0 introduces proper think token training for enhanced reasoning capabilities.
 
-```python
-from kullm_pro.code_switching import CodeSwitchingPipeline, OpenAIConfig
+### Example Output
+```
+User: Solve 2x + 5 = 13
 
-# Initialize configuration
-config = OpenAIConfig(
-    model="o4-mini-2025-04-16",
-    use_batch_api=True,
-    batch_size=100
-)
+Assistant: <think>
 
-# Create pipeline
-pipeline = CodeSwitchingPipeline(
-    openai_config=config,
-    system_prompt_path="system_prompt.txt",
-    output_dir="./data"
-)
+이 문제는 linear equation이야. Let me solve step by step.
+2x + 5 = 13
+2x = 13 - 5
+2x = 8
+x = 4
 
-# Process dataset
-original_file, code_switched_file = await pipeline.process_dataset(
-    dataset_name="GAIR/LIMO",
-    split="train",
-    n_samples=300
-)
+Let me verify: 2(4) + 5 = 8 + 5 = 13 ✓
+
+</think>
+
+The answer is x = 4.
 ```
 
-### Fine-tuning Pipeline
+### Key Features:
+- **Bilingual Reasoning**: Natural code-switching between Korean and English
+- **Step-by-step Thinking**: Transparent problem-solving process
+- **Verification**: Models learn to check their work
+- **Clean Output**: Think tokens are clearly separated from final answers
 
-```python
-from kullm_pro.fine_tuning import FineTuningPipeline
-from kullm_pro.utils import load_config
+## 🌏 Code-Switching
 
-# Load configuration
-config = load_config("config.yaml")
+KULLM-Pro generates natural bilingual training data using sophisticated linguistic theories:
 
-# Create pipeline
-pipeline = FineTuningPipeline(config)
+### Linguistic Framework
+- **Matrix Language Frame (MLF)**: Korean sentence structure with English technical terms
+- **Equivalence Constraint**: Maintains grammatical consistency at switch points
+- **Free Morpheme Constraint**: Ensures natural morpheme boundaries
 
-# Train model
-training_info = pipeline.train(
-    train_file="./data/train.jsonl",
-    output_dir="./outputs/my_model",
-    run_name="experiment_1"
-)
-
-# Evaluate model
-metrics = pipeline.evaluate(
-    model_dir="./outputs/my_model",
-    eval_file="./data/test.jsonl"
-)
+### Example Code-Switched Data
+```json
+{
+  "question": "Find the derivative of f(x) = x² + 3x + 2",
+  "solution": "1. 이 문제는 polynomial differentiation이야.\n2. Power rule을 사용하면, d/dx(x^n) = nx^(n-1)이다.\n3. 따라서 f'(x) = 2x + 3이다.",
+  "answer": "f'(x) = 2x + 3"
+}
 ```
 
-## 💰 Cost Estimates
+## ⚙️ Configuration
 
-### OpenAI API Costs (Batch API)
+### Training Configuration (`configs/train_with_think_tokens.yaml`)
+```yaml
+# Model settings
+model_name: "Qwen/Qwen2.5-7B-Instruct"
+tokenizer_name: "Qwen/Qwen2.5-7B-Instruct"
 
-| Samples | Estimated Cost | Processing Time |
-|---------|---------------|-----------------|
-| 100     | $1.50 - $5    | 30-60 minutes   |
-| 500     | $7.50 - $25   | 1-2 hours       |
-| 1000    | $15 - $50     | 2-4 hours       |
-| 5000    | $75 - $250    | 8-12 hours      |
+# Clean tokenizer settings
+clean_tokenizer: true
+essential_tokens_only: true
 
-*Costs based on o4-mini batch pricing with ~80% success rate*
+# Think token settings
+use_think_tokens: true
+think_mode: true
+validate_think_tokens: true
 
-### Training Costs (Local GPU)
+# Training hyperparameters
+learning_rate: 2e-4
+batch_size: 4
+gradient_accumulation_steps: 4
+num_epochs: 3
 
-| Model Size | GPU Memory | Training Time | Power Cost* |
-|------------|------------|---------------|-------------|
-| 7B (LoRA) | 24GB+      | 2-4 hours     | $2-8        |
-| 13B (LoRA)| 40GB+      | 4-8 hours     | $4-16       |
-| 70B (LoRA)| 80GB+      | 12-24 hours   | $12-48      |
+# LoRA settings
+use_lora: true
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.1
+```
 
-*Estimated at $0.20/kWh for high-end GPU*
+## 🔧 Advanced Usage
 
-## 🚨 Important Notes
-
-### Data Quality
-- **Success Rate**: ~80% for mathematical content (OpenAI content filters)
-- **Quality Control**: Manual review recommended for production use
-- **Language Balance**: Adjust system prompt for desired Korean/English ratio
-
-### Training Considerations
-- **GPU Memory**: Monitor VRAM usage during training
-- **Checkpoint Management**: Regular checkpoints prevent data loss
-- **Hyperparameter Tuning**: Start with default values, then optimize
-- **Validation**: Always use separate validation data
-
-### Production Deployment
-- **Model Serving**: Use appropriate serving frameworks (vLLM, TensorRT-LLM)
-- **Monitoring**: Track model performance and drift
-- **Updates**: Regular retraining with new data
-
-## 🔍 Troubleshooting
-
-### Common Issues
-
-**OpenAI API Errors:**
+### Console Commands (after pip install -e .)
 ```bash
-# Check API key
-echo $OPENAI_API_KEY
+# Chat interface
+kullm-chat --model_path outputs/your-model
 
-# Test API connection
-python -c "import openai; print(openai.models.list())"
+# Training
+kullm-train --config configs/train_with_think_tokens.yaml
+
+# Code switching
+kullm-code-switch --dataset_name GAIR/LIMO --n_samples 817
 ```
 
-**GPU Memory Issues:**
+### Direct Script Usage
 ```bash
-# Reduce batch size
-python fine_tune.py train --batch_size=1 --gradient_accumulation_steps=16
+# Chat interface
+python scripts/chat.py --model_path outputs/your-model
 
-# Use gradient checkpointing
-# (enabled by default in config.yaml)
+# Training
+python src/fine_tune.py --config configs/train_with_think_tokens.yaml
+
+# LoRA merging
+python tools/merge_lora.py --model_path outputs/your-lora-model --output_path outputs/merged-model
 ```
 
-**Import Errors:**
+## 📊 Performance
+
+### Training Metrics (Qwen2.5-7B)
+- **Training Time**: ~4-6 hours on RTX 4090 (817 samples, 3 epochs)
+- **Memory Usage**: ~18GB VRAM for training, ~8GB for inference
+- **Think Token Coverage**: 95%+ of training samples include think tokens
+- **Code-Switch Quality**: Natural bilingual reasoning with proper linguistic constraints
+
+### Model Capabilities
+- ✅ Mathematical reasoning with step-by-step explanations
+- ✅ Natural Korean-English code-switching
+- ✅ Transparent problem-solving process
+- ✅ Verification and error checking
+- ✅ Production-ready inference
+
+## 🛠️ Development
+
+### Running Tests
 ```bash
-# Reinstall dependencies
-pip install -r requirements.txt --force-reinstall
+# Test think token formatting
+python src/utils/format_think_data.py --input_file test_data.jsonl --output_file test_output.jsonl
 
-# Check Python path
-python -c "import kullm_pro; print(kullm_pro.__file__)"
+# Validate tokenizer cleaning
+python src/utils/clean_tokenizer.py --tokenizer_path Qwen/Qwen2.5-7B-Instruct
+
+# Test chat interface
+python scripts/chat.py --model_path outputs/your_model
 ```
 
-### Performance Optimization
-
-**For Code Switching:**
-- Use batch API for cost efficiency
-- Process in smaller chunks for memory management
-- Monitor API rate limits
-
-**For Training:**
-- Use mixed precision (bf16)
-- Enable gradient checkpointing
-- Optimize batch size for your GPU
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these guidelines:
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes** with proper tests
-4. **Follow code style**: Use black, isort, and flake8
-5. **Submit a pull request**
-
-### Development Setup
-
-```bash
-# Install development dependencies
-pip install -r requirements.txt
-
-# Install pre-commit hooks
-pre-commit install
-
-# Run tests
-pytest tests/
-
-# Format code
-black .
-isort .
-flake8 .
-```
+### Contributing
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- **OpenAI** for the powerful language models and API
-- **Hugging Face** for the transformers library and model hub
-- **GAIR** for the LIMO dataset
-- **Weights & Biases** for experiment tracking
-- **The open-source community** for the amazing tools and libraries
+- **Korea University NLP&AI Lab** for research and development
+- **OpenAI** for API services used in code-switching
+- **Hugging Face** for transformers library and model hosting
+- **LIMO Dataset** creators for providing high-quality reasoning data
+
+## 📞 Contact
+
+- **Email**: junkim100@gmail.com
+- **GitHub**: [junkim100](https://github.com/junkim100)
+- **Issues**: [GitHub Issues](https://github.com/junkim100/KULLM-Pro/issues)
+
+## 📚 Citation
+
+If you use KULLM-Pro in your research, please cite:
+
+```bibtex
+@software{kullm_pro_2024,
+  title={KULLM-Pro: Korean University Large Language Model - Professional Edition},
+  author={Korea University NLP\&AI Lab},
+  year={2024},
+  version={1.1.0},
+  url={https://github.com/junkim100/KULLM-Pro}
+}
+```
 
 ---
 
-**Happy training! 🚀**
-
-For questions or support, please open an issue on GitHub.
+<div align="center">
+Made with ❤️ by Korea University NLP&AI Lab
+</div>

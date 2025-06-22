@@ -252,7 +252,12 @@ def main(
             continue
 
 
-if __name__ == "__main__":
+def cli_main():
+    """Entry point for console script."""
     import fire
 
     fire.Fire(main)
+
+
+if __name__ == "__main__":
+    cli_main()

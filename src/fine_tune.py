@@ -337,7 +337,6 @@ class FineTuningPipeline:
         output_dir: str,
         model_name: Optional[str] = None,
         run_name: Optional[str] = None,
-        val_file: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Train the model with LoRA fine-tuning.
@@ -347,7 +346,6 @@ class FineTuningPipeline:
             output_dir: Output directory for trained model
             model_name: Model name (overrides config)
             run_name: Wandb run name
-            val_file: Optional validation file
 
         Returns:
             Training information dictionary
@@ -367,13 +365,6 @@ class FineTuningPipeline:
         train_data = load_jsonl(data_file)
         if not validate_jsonl_format(train_data):
             raise ValueError("Invalid training data format")
-
-        # Load validation data if provided
-        val_data = None
-        if val_file:
-            val_data = load_jsonl(val_file)
-            if not validate_jsonl_format(val_data):
-                raise ValueError("Invalid validation data format")
 
         # Use model name from parameter or config
         model_name = model_name or self.config["model"]["name"]
@@ -407,21 +398,12 @@ class FineTuningPipeline:
         formatted_train_data = self.format_training_data(train_data)
         train_dataset = self.prepare_dataset(formatted_train_data, tokenizer)
 
-        # Prepare validation dataset if available
-        eval_dataset = None
-        if val_data:
-            formatted_val_data = self.format_training_data(val_data)
-            eval_dataset = self.prepare_dataset(formatted_val_data, tokenizer)
-
         # Setup training arguments
         training_args = TrainingArguments(
             output_dir=output_dir,
             num_train_epochs=self.config["training"]["num_train_epochs"],
             per_device_train_batch_size=self.config["training"][
                 "per_device_train_batch_size"
-            ],
-            per_device_eval_batch_size=self.config["training"][
-                "per_device_eval_batch_size"
             ],
             gradient_accumulation_steps=self.config["training"][
                 "gradient_accumulation_steps"
@@ -431,13 +413,8 @@ class FineTuningPipeline:
             warmup_ratio=self.config["training"]["warmup_ratio"],
             lr_scheduler_type=self.config["training"]["lr_scheduler_type"],
             save_steps=self.config["training"]["save_steps"],
-            eval_steps=self.config["training"]["eval_steps"],
             logging_steps=self.config["training"]["logging_steps"],
             save_total_limit=self.config["training"]["save_total_limit"],
-            load_best_model_at_end=self.config["training"]["load_best_model_at_end"],
-            metric_for_best_model=self.config["training"]["metric_for_best_model"],
-            greater_is_better=self.config["training"]["greater_is_better"],
-            eval_strategy=self.config["training"]["eval_strategy"],
             save_strategy=self.config["training"]["save_strategy"],
             fp16=self.config["training"]["fp16"],
             gradient_checkpointing=False,  # Handled manually in LoRA setup
@@ -488,7 +465,6 @@ class FineTuningPipeline:
             model=model,
             args=training_args,
             train_dataset=train_dataset,
-            eval_dataset=eval_dataset,
             data_collator=data_collator,
             tokenizer=tokenizer,
         )
@@ -536,7 +512,6 @@ class FineTuneCLI:
         model_name: Optional[str] = None,
         config: str = "config.yaml",
         run_name: Optional[str] = None,
-        val_file: Optional[str] = None,
     ):
         """
         Train a model with LoRA fine-tuning.
@@ -547,7 +522,6 @@ class FineTuneCLI:
             model_name: Model name to fine-tune (overrides config)
             config: Path to configuration file (default: "config.yaml")
             run_name: Wandb run name (auto-generated if not provided)
-            val_file: Optional path to validation JSONL file
 
         Example:
             python src/fine_tune.py train --data_file="./data/train.jsonl" --output_dir="./outputs/my_model" --config="configs/train_with_think_tokens.yaml"
@@ -562,7 +536,6 @@ class FineTuneCLI:
                 output_dir=output_dir,
                 model_name=model_name,
                 run_name=run_name,
-                val_file=val_file,
             )
 
             self.logger.info("Fine-tuning completed successfully!")
@@ -575,21 +548,12 @@ class FineTuneCLI:
             self.logger.error(f"Fine-tuning failed: {e}")
             raise
 
-    def evaluate(self, model_dir: str, eval_file: str, config: str = "config.yaml"):
-        """
-        Evaluate a trained model.
 
-        Args:
-            model_dir: Directory containing the trained model
-            eval_file: Path to evaluation data JSONL file
-            config: Path to configuration file
+def train_main():
+    """Entry point for kullm-train console command."""
+    import fire
 
-        Example:
-            python src/fine_tune.py evaluate --model_dir="./outputs/my_model" --eval_file="./data/test.jsonl"
-        """
-        # TODO: Implement evaluation functionality
-        self.logger.info("Evaluation functionality not yet implemented")
-        return {"status": "not_implemented"}
+    fire.Fire(FineTuneCLI().train)
 
 
 def main():

@@ -56,7 +56,7 @@ setup(
     entry_points={
         "console_scripts": [
             "kullm-chat=scripts.chat:cli_main",
-            "kullm-train=src.fine_tune:main",
+            "kullm-train=src.fine_tune:train_main",
             "kullm-code-switch=src.code_switch:main",
         ],
     },

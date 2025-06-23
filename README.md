@@ -78,37 +78,28 @@ pip install -e .
 
 ### 1. **Generate Code-Switched Training Data**
 ```bash
-python src/code_switch.py \
+kullm-code-switch process \
   --dataset_name="GAIR/LIMO" \
   --split="train" \
   --n_samples=817 \
   --output_file="data/code_switched_LIMO_train.jsonl"
 ```
 
-### 2. **Format Data with Think Tokens**
+### 2. **Train Your Model**
 ```bash
-python src/utils/format_think_data.py \
-  --input_file="data/code_switched_LIMO_train.jsonl" \
-  --output_file="data/code_switched_LIMO_train_think.jsonl" \
-  --format="think_tokens"
-```
-
-### 3. **Train Your Model**
-```bash
-python src/fine_tune.py train \
+kullm-train \
   --config="configs/train_with_think_tokens.yaml" \
-  --data_file="data/code_switched_LIMO_train_think.jsonl" \
+  --data_file="data/code_switched_LIMO_train.jsonl" \
   --output_dir="outputs/kullm-pro-v1.1"
 ```
 
-### 4. **Chat with Your Model**
+> **Note**: Think token formatting is automatically handled during training - no separate formatting step needed!
+
+### 3. **Chat with Your Model**
 ```bash
-python scripts/chat.py \
+kullm-chat \
   --model_path="outputs/kullm-pro-v1.1" \
   --max_new_tokens=2048
-
-# Or use the console command after pip install -e .
-kullm-chat --model_path="outputs/kullm-pro-v1.1"
 ```
 
 ## 📁 Project Structure
@@ -117,10 +108,9 @@ kullm-chat --model_path="outputs/kullm-pro-v1.1"
 KULLM-Pro/
 ├── 📁 src/                          # Core source code
 │   ├── 🐍 code_switch.py           # Code-switching data generation
-│   ├── 🐍 fine_tune.py             # Model training pipeline
+│   ├── 🐍 fine_tune.py             # Model training pipeline (includes think token formatting)
 │   ├── 📁 utils/                   # Utility modules
 │   │   ├── 🐍 clean_tokenizer.py   # Tokenizer cleaning utilities
-│   │   ├── 🐍 format_think_data.py # Think token data formatting
 │   │   ├── 🐍 data_processing.py   # Data processing utilities
 │   │   └── 🐍 model_utils.py       # Model utilities
 │   └── 🐍 __init__.py              # Package initialization
@@ -191,52 +181,66 @@ KULLM-Pro generates natural bilingual training data using sophisticated linguist
 ### Training Configuration (`configs/train_with_think_tokens.yaml`)
 ```yaml
 # Model settings
-model_name: "Qwen/Qwen2.5-7B-Instruct"
-tokenizer_name: "Qwen/Qwen2.5-7B-Instruct"
+model:
+  name: "Qwen/Qwen2.5-7B-Instruct"
+  max_length: 8192
 
-# Clean tokenizer settings
-clean_tokenizer: true
-essential_tokens_only: true
-
-# Think token settings
-use_think_tokens: true
-think_mode: true
-validate_think_tokens: true
+# Dataset settings
+dataset:
+  think_token_start: "<think>"
+  think_token_end: "</think>"
 
 # Training hyperparameters
-learning_rate: 2e-4
-batch_size: 4
-gradient_accumulation_steps: 4
-num_epochs: 3
+training:
+  learning_rate: 0.0002
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 4
+  num_train_epochs: 3
+  save_steps: 200  # Save checkpoint every 200 steps
+  logging_steps: 10
+  save_total_limit: 2
 
 # LoRA settings
-use_lora: true
-lora_r: 16
-lora_alpha: 32
-lora_dropout: 0.1
+lora:
+  enabled: true
+  r: 16
+  alpha: 32
+  dropout: 0.1
+  bias: "none"
+
+# Wandb settings
+wandb:
+  enabled: true
+  project: "kullm-pro"
 ```
 
 ## 🔧 Advanced Usage
 
-### Console Commands (after pip install -e .)
+### Console Commands (Recommended)
 ```bash
 # Chat interface
-kullm-chat --model_path outputs/your-model
+kullm-chat --model_path outputs/your-model --max_new_tokens 2048
 
-# Training
-kullm-train --config configs/train_with_think_tokens.yaml
+# Training with custom config
+kullm-train \
+  --config configs/train_with_think_tokens.yaml \
+  --data_file data/your_training_data.jsonl \
+  --output_dir outputs/your-model
 
-# Code switching
-kullm-code-switch --dataset_name GAIR/LIMO --n_samples 817
+# Code switching data generation
+kullm-code-switch process \
+  --dataset_name GAIR/LIMO \
+  --n_samples 817 \
+  --output_file data/code_switched_output.jsonl
 ```
 
-### Direct Script Usage
+### Direct Script Usage (Alternative)
 ```bash
 # Chat interface
 python scripts/chat.py --model_path outputs/your-model
 
 # Training
-python src/fine_tune.py --config configs/train_with_think_tokens.yaml
+python src/fine_tune.py train --config configs/train_with_think_tokens.yaml
 
 # LoRA merging
 python tools/merge_lora.py --model_path outputs/your-lora-model --output_path outputs/merged-model
@@ -261,14 +265,14 @@ python tools/merge_lora.py --model_path outputs/your-lora-model --output_path ou
 
 ### Running Tests
 ```bash
-# Test think token formatting
-python src/utils/format_think_data.py --input_file test_data.jsonl --output_file test_output.jsonl
-
 # Validate tokenizer cleaning
 python src/utils/clean_tokenizer.py --tokenizer_path Qwen/Qwen2.5-7B-Instruct
 
 # Test chat interface
-python scripts/chat.py --model_path outputs/your_model
+kullm-chat --model_path outputs/your_model
+
+# Test training pipeline
+kullm-train --config configs/train_with_think_tokens.yaml --data_file data/test_data.jsonl
 ```
 
 ### Contributing

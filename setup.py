@@ -3,7 +3,7 @@
 Setup script for KULLM-Pro: Korean University Large Language Model - Professional Edition
 """
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 # Read the README file
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -24,7 +24,8 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/junkim100/KULLM-Pro",
-    packages=find_packages(),
+    packages=["src", "src.utils", "scripts", "tools"],
+    package_dir={"": "."},
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
